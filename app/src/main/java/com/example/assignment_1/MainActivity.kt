@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,12 +22,20 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -176,21 +185,45 @@ fun MovieDetails(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieList(navController: NavController, results: List<Result>, viewModel: MainViewModel) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(results) {
-            MovieCard(result = it, navController = navController, viewModel = viewModel)
+
+    var searchText by remember { mutableStateOf("") }
+    Log.i("TAG", "searchTextField: ${searchText}")
+
+    //returns the filtered Movies on the basis of the search
+    val filteredMovies = if (searchText.isBlank()) {
+        results // If the search query is empty, show all movies
+    } else {
+        results.filter { it.title.contains(searchText, ignoreCase = true) } // Filter movies by title
+    }
+
+    Column (modifier = Modifier.padding(vertical = 20.dp, horizontal = 0.dp)) {
+        TextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            placeholder = { Text("Search movies...") },
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Red,
+            )
+        )
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            items(filteredMovies) {
+                MovieCard(result = it, navController = navController, viewModel = viewModel)
+            }
         }
     }
 }
-
 
 //Unused but for learning
 @Preview(showBackground = true)
