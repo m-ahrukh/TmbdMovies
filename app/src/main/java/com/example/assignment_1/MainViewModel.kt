@@ -21,6 +21,9 @@ class MainViewModel: ViewModel() {
     val _movies = MutableStateFlow<List<Result>>(emptyList()) //defines private
     val movies: StateFlow<List<Result>> = _movies
 
+    private val _selectedMovie = MutableStateFlow<Result?>(null)
+    val selectedMovie: StateFlow<Result?> = _selectedMovie
+
     fun fetchMovies(){
         viewModelScope.launch (Dispatchers.IO) {
             NetworkRepository.getAllMovies().enqueue(object : Callback<Movies> {
@@ -36,5 +39,9 @@ class MainViewModel: ViewModel() {
 
             })
         }
+    }
+
+    fun selectMovie(movie: Result) {
+        _selectedMovie.value = movie
     }
 }
